@@ -18,7 +18,8 @@ passport.use(new LocalStrategy({
         return done(null, false, req.flash('error_msgs', '帳號或密碼輸入錯誤！'))
       }
       return done(null, user)
-    }).catch(err => done(err, false))
+    })
+    .catch(err => done(err, false))
 }
 ))
 
