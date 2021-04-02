@@ -6,6 +6,7 @@ const bodyParser = require('body-parser')
 const session = require('express-session')
 const flash = require('connect-flash')
 const methodOverride = require('method-override')
+const helpers = require('./_helpers')
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config
 }
@@ -32,7 +33,7 @@ app.use('/upload', express.static(__dirname + '/upload'))
 app.use((req, res, next) => {
   res.locals.success_msgs = req.flash('success_msgs')
   res.locals.error_msgs = req.flash('error_msgs')
-  res.locals.user = req.user
+  res.locals.user = helpers.getUser(req)
   next()
 })
 
