@@ -9,6 +9,7 @@ const adminController = {
         return res.render('admin/restaurants', { restaurants })
       })
   },
+
   createRestaurant: (req, res) => {
     return res.render('admin/create')
   },
@@ -24,7 +25,37 @@ const adminController = {
     })
       .then(restaurant => {
         req.flash('success_msgs', 'Restaurant was successfully created')
-        return res.redirect('/admin/restaurants')
+        return res.redirect('admin/restaurants')
+      })
+  },
+
+  getRestaurant: (req, res) => {
+    return Restaurant.findByPk(req.params.id, { raw: true })
+      .then(restaurant => {
+        return res.render('admin/restaurant', { restaurant })
+      })
+  },
+
+  editRestaurant: (req, res) => {
+    return Restaurant.findByPk(req.params.id, { raw: true })
+      .then(restaurant => {
+        return res.render('admin/create', { restaurant })
+      })
+  },
+
+  putRestaurant: (req, res) => {
+    if (!req.body.name) {
+      req.flash('error_msgs', 'Name is required')
+      return res.redirect('back')
+    }
+    const { name, tel, address, opening_hours, description } = req.body
+    return Restaurant.findByPk(req.params.id)
+      .then(restaurant => {
+        restaurant.update({ name, tel, address, opening_hours, description })
+      })
+      .then(restaurant => {
+        req.flash('success_msgs', 'restaurant was successfully updated')
+        res.redirect('/admin/restaurants')
       })
   }
 }

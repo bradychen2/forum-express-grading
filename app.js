@@ -5,6 +5,7 @@ const exphbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 const session = require('express-session')
 const flash = require('connect-flash')
+const methodOverride = require('method-override')
 const passport = require('./config/passport')
 const port = 3000
 
@@ -19,6 +20,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }))
+app.use(methodOverride('_method'))
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash())
