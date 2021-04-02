@@ -1,6 +1,8 @@
 const db = require('../models')
 const restaurant = require('../models/restaurant')
 const fs = require('fs')
+const imgur = require('imgur-node-api')
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const Restaurant = db.Restaurant
 
 const adminController = {
@@ -23,18 +25,16 @@ const adminController = {
     }
     const { file } = req
     if (file) {
-      fs.readFile(file.path, (err, data) => {
-        if (err) console.log('Error: ', err)
-        fs.writeFile(`upload/${file.originalname}`, data, () => {
-          return Restaurant.create({
-            name, tel, address, opening_hours, description,
-            image: file ? `/upload/${file.originalname}` : null
-          })
-            .then(restaurant => {
-              req.flash('success_msgs', 'Restaurant was successfully created')
-              return res.redirect('/admin/restaurants')
-            })
+      imgur.setClientID(IMGUR_CLIENT_ID)
+      imgur.upload(file.path, (err, img) => {
+        return Restaurant.create({
+          name, tel, address, opening_hours, description,
+          image: file ? img.data.link : null
         })
+          .then(restaurant => {
+            req.flash('success_msgs', 'Restaurant was successfully created')
+            return res.redirect('/admin/restaurants')
+          })
       })
     } else {
       return Restaurant.create({
@@ -69,21 +69,19 @@ const adminController = {
     const { name, tel, address, opening_hours, description } = req.body
     const { file } = req
     if (file) {
-      fs.readFile(file.path, (err, data) => {
-        if (err) console.log('Error: ', err)
-        fs.writeFile(`upload/${file.originalname}`, data, () => {
-          return Restaurant.findByPk(req.params.id)
-            .then(restaurant => {
-              restaurant.update({
-                name, tel, address, opening_hours, description,
-                image: file ? `/upload/${file.originalname}` : restaurant.image
-              })
+      imgur.setClientID(IMGUR_CLIENT_ID)
+      imgur.upload(file.path, (err, img) => {
+        return Restaurant.findByPk(req.params.id)
+          .then(restaurant => {
+            restaurant.update({
+              name, tel, address, opening_hours, description,
+              image: file ? img.data.link : restaurant.image
             })
-            .then(restaurant => {
-              req.flash('success_msgs', 'restaurant was successfully updated')
-              res.redirect('/admin/restaurants')
-            })
-        })
+          })
+          .then(restaurant => {
+            req.flash('success_msgs', 'restaurant was successfully updated')
+            res.redirect('/admin/restaurants')
+          })
       })
     } else {
       return Restaurant.findByPk(req.params.id)
