@@ -3,13 +3,28 @@ const Category = db.Category
 
 const categoryController = {
   getCategories: (req, res) => {
-    return Category.findAll({
-      raw: true,
-      nest: true
-    })
-      .then(categories => {
-        res.render('admin/categories', { categories })
+    if (req.params.id) {
+      return Category.findByPk(req.params.id)
+        .then(category => {
+          return Category.findAll({
+            raw: true,
+            nest: true
+          }).then(categories => {
+            res.render('admin/categories', {
+              category: category.toJSON(),
+              categories
+            })
+          })
+        })
+    } else {
+      return Category.findAll({
+        raw: true,
+        nest: true
       })
+        .then(categories => {
+          res.render('admin/categories', { categories })
+        })
+    }
   },
 
   postCategory: (req, res) => {
@@ -21,8 +36,23 @@ const categoryController = {
       .then(category => {
         res.redirect('/admin/categories')
       })
-  }
+  },
 
+  putCategory: (req, res) => {
+    if (!req.body.name) {
+      req.flash('error_msgs', 'category name is necessary!')
+    } else {
+      return Category.findByPk(req.params.id)
+        .then(category => {
+          category.update({
+            name: req.body.name
+          })
+            .then(category => {
+              res.redirect('/admin/categories')
+            })
+        })
+    }
+  }
 }
 
 module.exports = categoryController
