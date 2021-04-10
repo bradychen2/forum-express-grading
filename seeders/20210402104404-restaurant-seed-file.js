@@ -13,7 +13,9 @@ module.exports = {
           image: `https://loremflicker.com/320/240/restaurant,food/?random=${Math.random() * 100}`,
           description: faker.lorem.text(),
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          // Random number 1, 11, 21, 31, 41, 51
+          CategoryId: Math.floor(Math.random() * 6) * 10 + 1
         }
       }), {})
   },

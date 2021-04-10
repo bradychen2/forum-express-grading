@@ -4,6 +4,7 @@ const fs = require('fs')
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const Restaurant = db.Restaurant
+const User = db.User
 
 const adminController = {
   getRestaurants: (req, res) => {
@@ -100,9 +101,20 @@ const adminController = {
   deleteRestaurant: (req, res) => {
     return Restaurant.findByPk(req.params.id)
       .then(restaurant => {
-        restaurant.destroy()
+        return restaurant.destroy()
       })
-      .then(() => res.redirect('/admin/restaurants'))
+      .then(restaurant => {
+        console.log(restaurant)
+        res.redirect('/admin/restaurants')
+      })
+  },
+
+  getUsers: (req, res) => {
+    return User.findAll()
+      .then(users => {
+        res.render('users', { users })
+      })
+      .catch(err => console.log(err))
   }
 }
 
