@@ -4,10 +4,19 @@ Category = db.Category
 
 const restController = {
   getRestaurants: (req, res) => {
+    const whereQuery = {}
+    let categoryId = ''
+    if (req.query.categoryId) {
+      // Transform to Number for sequelize query
+      categoryId = Number(req.query.categoryId)
+      whereQuery.CategoryId = categoryId
+    }
+
     return Restaurant.findAll({
       raw: true,
       nest: true,
-      include: [Category]
+      include: [Category],
+      where: whereQuery
     }).then(restaurants => {
       const data = restaurants.map(r => {
         return {
@@ -16,7 +25,16 @@ const restController = {
           categoryName: r.Category.name
         }
       })
-      res.render('restaurants', { restaurants: data })
+      return Category.findAll({
+        raw: true,
+        nest: true
+      }).then(categories => {
+        res.render('restaurants', {
+          restaurants: data,
+          categories,
+          categoryId
+        })
+      })
     })
   },
 
