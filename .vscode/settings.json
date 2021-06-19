@@ -1,10 +1,14 @@
 {
   "cSpell.words": [
+    "cleardb",
     "cond",
+    "database",
     "exphbs",
     "id",
     "imgur",
+    "postgres",
     "resave",
-    "signin"
+    "signin",
+    "url"
   ]
 }

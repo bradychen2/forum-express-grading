@@ -134,7 +134,6 @@ const adminController = {
         return restaurant.destroy()
       })
       .then(restaurant => {
-        console.log(restaurant)
         res.redirect('/admin/restaurants')
       })
   },
