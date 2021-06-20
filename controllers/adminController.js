@@ -160,14 +160,6 @@ const adminController = {
         res.redirect('/admin/restaurants')
       })
   },
-
-  getUsers: (req, res) => {
-    return User.findAll()
-      .then(users => {
-        res.render('users', { users })
-      })
-      .catch(err => console.log(err))
-  }
 }
 
 module.exports = adminController
