@@ -1,0 +1,52 @@
+<h1>餐廳後台</h1>
+
+<a href='/admin/restaurants/create'>
+  <button type="button" class="btn btn-primary">New Restaurant</button>
+</a>
+<br />
+<br />
+<a href='/admin/restaurants'>Restaurants</a>
+<span>|</span>
+<a href='/admin/users'>Users</a>
+<br />
+<br />
+<table class="table">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Role</th>
+      <th scope="col">#</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each users}}
+    <tr>
+      <th scope="row">{{this.id}}</th>
+      <td>{{this.name}}</td>
+      <td>{{this.email}}</td>
+      <td>{{this.isAdmin}}</td>
+      {{#if this.isAdmin}}
+      <td>
+        <form id='toggle-admin-{{this.id}}' action="/admin/users/{{this.id}}/toggleAdmin?_method=PUT" method="POST">
+          {{!-- Reference: https://stackoverflow.com/questions/10039968/submit-form-using-a-tag --}}
+          <a href='javascript:{}' onclick="document.getElementById('toggle-admin-{{this.id}}').submit();">
+            set as user
+          </a>
+        </form>
+      </td>
+      {{else}}
+      <td>
+        <form id='toggle-admin-{{this.id}}' action="/admin/users/{{this.id}}/toggleAdmin?_method=PUT" method="POST">
+          {{!-- Reference: https://stackoverflow.com/questions/10039968/submit-form-using-a-tag --}}
+          <a href='javascript:{}' onclick="document.getElementById('toggle-admin-{{this.id}}').submit();">
+            set as admin
+          </a>
+        </form>
+      </td>
+      {{/if}}
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
