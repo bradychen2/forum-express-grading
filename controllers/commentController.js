@@ -2,24 +2,29 @@ const db = require('../models')
 const Comment = db.Comment
 
 const commentController = {
-  postComment: (req, res) => {
-    return Comment.create({
-      text: req.body.text,
-      RestaurantId: req.body.restaurantId,
-      UserId: req.user.id
-    }).then(comment => {
-      res.redirect(`/restaurants/${req.body.restaurantId}`)
-    })
+  postComment: async (req, res) => {
+    try {
+      await Comment.create({
+        text: req.body.text,
+        RestaurantId: req.body.restaurantId,
+        UserId: req.user.id
+      })
+      return res.redirect(`/restaurants/${req.body.restaurantId}`)
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
 
-  deleteComment: (req, res) => {
-    return Comment.findByPk(req.params.id)
-      .then(comment => {
-        comment.destroy()
-          .then(comment => {
-            res.redirect(`/restaurants/${comment.RestaurantId}`)
-          })
-      })
+  deleteComment: async (req, res) => {
+    try {
+      const comment = await Comment.findByPk(req.params.id)
+      await comment.destroy()
+      return res.redirect(`/restaurants/${comment.RestaurantId}`)
+    } catch {
+      console.log(err)
+      next(err)
+    }
   }
 }
 

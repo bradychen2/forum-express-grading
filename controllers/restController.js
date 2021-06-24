@@ -6,7 +6,7 @@ const User = db.User
 const pageLimit = 10
 
 const restController = {
-  getRestaurants: (req, res) => {
+  getRestaurants: async (req, res) => {
     let offset = 0
     const whereQuery = {}
     let categoryId = ''
@@ -16,60 +16,69 @@ const restController = {
     }
 
     if (req.query.categoryId) {
+      // req.query.categoryId is String type
       // Transform to Number for sequelize query
       categoryId = Number(req.query.categoryId)
       whereQuery.CategoryId = categoryId
     }
 
-    return Restaurant.findAndCountAll({
-      raw: true,
-      nest: true,
-      include: [Category],
-      where: whereQuery,
-      offset: offset,
-      limit: pageLimit
-    }).then(results => {
-      const page = req.query.page || 1 // url no params, default page 1
+    try {
+      const results =
+        await Restaurant.findAndCountAll({
+          raw: true,
+          nest: true,
+          include: [Category],
+          where: whereQuery,
+          offset: offset,
+          limit: pageLimit
+        })
+      // url no params, default page 1
+      const page = Number(req.query.page) || 1
       // Cal how much pages
       const pages = Math.ceil(results.count / pageLimit)
       const totalPage = Array.from({ length: pages }).map((item, index) => index + 1)
       let prev = page - 1 < 1 ? 1 : page - 1
-      let next = page + 1 < pages ? pages : page + 1
-
+      let next = (page + 1 > pages) ? pages : page + 1
       // Cut description to length-50 and add categoryName for render
       const data = results.rows.map(r => {
         return {
-          ...r,
+          ...r, // spread operator
           description: r.description.substring(0, 50),
           categoryName: r.Category.name
         }
       })
-      return Category.findAll({
-        raw: true,
-        nest: true
-      }).then(categories => {
-        res.render('restaurants', {
-          restaurants: data,
-          categories,
-          categoryId,
-          page, totalPage, prev, next
+      const categories =
+        await Category.findAll({
+          raw: true,
+          nest: true
         })
+      return res.render('restaurants', {
+        restaurants: data,
+        categories,
+        categoryId,
+        page, totalPage, prev, next
       })
-    })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
 
-  getRestaurant: (req, res) => {
-    return Restaurant.findByPk(req.params.id, {
-      include: [
-        Category,
-        { model: Comment, include: [User] }]
-    })
-      .then(restaurant => {
-        console.log(restaurant)
-        res.render('restaurant', {
-          restaurant: restaurant.toJSON()
+  getRestaurant: async (req, res) => {
+    try {
+      const restaurant =
+        await Restaurant.findByPk(req.params.id, {
+          include: [
+            Category,
+            { model: Comment, include: [User] }
+          ]
         })
-      })
+      console.log(restaurant)
+      return res.render('restaurant', { restaurant: restaurant.toJSON() })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 
