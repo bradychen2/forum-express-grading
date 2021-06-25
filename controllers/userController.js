@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs')
 const db = require('../models')
+const imgur = require('imgur-node-api')
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const User = db.User
 
 const userController = {
@@ -43,6 +45,54 @@ const userController = {
     req.flash('success_msgs', '登出成功！')
     req.logout()
     res.redirect('/signin')
+  },
+
+  getUser: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.id)
+      res.render('user', { user: user.toJSON() })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  editUser: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.id)
+      res.render('editUser', { user: user.toJSON() })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  putUser: async (req, res) => {
+    const { name, image } = req.body
+    const { file } = req
+
+    try {
+      const user = await User.findByPk(req.params.id)
+
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID)
+        imgur.upload(file.path, async (err, img) => {
+          await user.update({
+            name,
+            image: file ? img.data.link : user.image
+          })
+        })
+        req.flash('success_msgs', 'user was successfully updated')
+        return res.redirect(`/users/${req.params.id}`)
+      } else {
+        await user.update({ name, image })
+        req.flash('success_msgs', 'user was successfully updated')
+        return res.redirect(`/users/${req.params.id}`)
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 
