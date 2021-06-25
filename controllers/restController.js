@@ -5,6 +5,8 @@ const Comment = db.Comment
 const User = db.User
 const pageLimit = 10
 
+
+
 const restController = {
   getRestaurants: async (req, res, next) => {
     let offset = 0
@@ -78,6 +80,33 @@ const restController = {
       console.log(err)
       next(err)
     }
+  },
+
+  getFeeds: async (req, res, next) => {
+    return Promise.all([
+      Restaurant.findAll({
+        limit: 10,
+        raw: true,
+        nest: true,
+        order: [['createdAt', 'DESC']],
+        include: [Category]
+      }),
+      Comment.findAll({
+        limit: 10,
+        raw: true,
+        nest: true,
+        order: [['createdAt', 'DESC']],
+        include: [User, Restaurant]
+      })
+    ]).then(([restaurants, comments]) => {
+      return res.render('feeds', {
+        restaurants: restaurants,
+        comments: comments
+      })
+    }).catch(err => {
+      console.log(err)
+      next(err)
+    })
   }
 }
 
