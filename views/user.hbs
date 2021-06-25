@@ -1,12 +1,30 @@
 <div class="row">
-  <div class="col-md-4">
-    <img class="img-responsive center-block" src="{{user.image}}" style="width: 250px;margin-bottom: 25px;">
-    <div>
-      <h4>{{user.name}}</h4>
-      <p>{{user.email}}</p>
+  <div class="card col-md-12 d-flex flex-row align-items-center">
+    <img class="img-responsive center-block" src="{{user.image}}" style="width: 250px; height: 200px;">
+    <div class="mx-3">
+      <div>
+        <h4>{{user.name}}</h4>
+        <p>{{user.email}}</p>
+        <p><strong>{{user.countOfRestaurants}} 已評論餐廳</strong></p>
+      </div>
+      <div class="d-flex align-items-center">
+        <a class="btn btn-primary" href="/users/{{user.id}}/edit">edit</a>
+        <a class="mx-2" href="javascript:history.back()">回上一頁</a>
+      </div>
     </div>
-    <a class="btn btn-primary" href="/users/{{user.id}}/edit">edit</a>
+  </div>
+  <div class="card col-md-12 my-3">
+    <div class="card-header">
+      <strong>
+        {{user.countOfRestaurants}} 已評論餐廳
+      </strong>
+    </div>
+    <div class="card-body">
+      {{#each restImgs}}
+      <a href="/restaurants/{{this.id}}" style="text-decoration: none;">
+        <img class="mx-2 mb-3" src="{{this.image}}" style="width: 45px; height: 45px;">
+      </a>
+      {{/each}}
+    </div>
   </div>
 </div>
-<br />
-<a href="javascript:history.back()">回上一頁</a>

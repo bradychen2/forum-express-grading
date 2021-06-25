@@ -4,6 +4,8 @@ const imgur = require('imgur-node-api')
 const fs = require('fs')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const User = db.User
+const Comment = db.Comment
+const Restaurant = db.Restaurant
 
 const userController = {
   signUpPage: (req, res) => {
@@ -48,10 +50,33 @@ const userController = {
     res.redirect('/signin')
   },
 
-  getUser: async (req, res) => {
+  getUser: async (req, res, next) => {
+    const restaurants = {}
+    let countOfRestaurants = 0
     try {
-      const user = await User.findByPk(req.params.id)
-      res.render('user', { user: user.toJSON() })
+      let user = await User.findByPk(req.params.id, {
+        include: [{
+          model: Comment,
+          include: [Restaurant]
+        }]
+      })
+      user = user.toJSON()
+
+      user.Comments.forEach((comment) => {
+        if (!restaurants[comment.Restaurant.id]) {
+          restaurants[comment.Restaurant.id] = comment.Restaurant.image
+          countOfRestaurants += 1
+        }
+      })
+
+      // Get array of object which contains restaurants' ids and images
+      let restImgs = Object.keys(restaurants).map(id => {
+        return { id: id, image: restaurants[id] }
+      })
+
+      // How many restaurants the user has commented
+      user.countOfRestaurants = countOfRestaurants
+      return res.render('user', { user, restImgs })
     } catch (err) {
       console.log(err)
       next(err)
