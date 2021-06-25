@@ -75,6 +75,7 @@ const restController = {
             { model: Comment, include: [User] }
           ]
         })
+      await restaurant.increment('viewCounts')
       return res.render('restaurant', { restaurant: restaurant.toJSON() })
     } catch (err) {
       console.log(err)
