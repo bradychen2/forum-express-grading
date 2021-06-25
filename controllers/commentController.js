@@ -2,7 +2,7 @@ const db = require('../models')
 const Comment = db.Comment
 
 const commentController = {
-  postComment: async (req, res) => {
+  postComment: async (req, res, next) => {
     try {
       await Comment.create({
         text: req.body.text,
@@ -16,7 +16,7 @@ const commentController = {
     }
   },
 
-  deleteComment: async (req, res) => {
+  deleteComment: async (req, res, next) => {
     try {
       const comment = await Comment.findByPk(req.params.id)
       await comment.destroy()

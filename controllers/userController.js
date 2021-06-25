@@ -12,7 +12,7 @@ const userController = {
     res.render('signup')
   },
 
-  signUp: async (req, res) => {
+  signUp: async (req, res, next) => {
     const { name, email, password } = req.body
     if (password != req.body.passwordCheck) {
       req.flash('error_msgs', '兩次輸入的密碼不同！')
@@ -30,8 +30,8 @@ const userController = {
         return res.redirect('/signin')
       }
     } catch (err) {
-      res.json(err)
       console.log(err)
+      next(err)
     }
   },
 
@@ -83,7 +83,7 @@ const userController = {
     }
   },
 
-  editUser: async (req, res) => {
+  editUser: async (req, res, next) => {
     try {
       const user = await User.findByPk(req.params.id)
       res.render('editUser', { user: user.toJSON() })
@@ -93,7 +93,7 @@ const userController = {
     }
   },
 
-  putUser: async (req, res) => {
+  putUser: async (req, res, next) => {
     const { name, image } = req.body
     const { file } = req
     if (!name) {

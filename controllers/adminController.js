@@ -7,7 +7,7 @@ const User = db.User
 const Category = db.Category
 
 const adminController = {
-  getUsers: async (req, res) => {
+  getUsers: async (req, res, next) => {
     try {
       const users = await User.findAll({ raw: true })
       return res.render('admin/users', { users })
@@ -17,7 +17,7 @@ const adminController = {
     }
   },
 
-  toggleAdmin: async (req, res) => {
+  toggleAdmin: async (req, res, next) => {
     try {
       let user = await User.findByPk(req.params.id)
       await user.update({ isAdmin: user.isAdmin ? false : true })
@@ -29,7 +29,7 @@ const adminController = {
     }
   },
 
-  getRestaurants: async (req, res) => {
+  getRestaurants: async (req, res, next) => {
     try {
       const restaurants = await Restaurant.findAll({
         raw: true,
@@ -43,7 +43,7 @@ const adminController = {
     }
   },
 
-  createRestaurant: async (req, res) => {
+  createRestaurant: async (req, res, next) => {
     try {
       const categories =
         await Category.findAll({
@@ -57,7 +57,7 @@ const adminController = {
     }
   },
 
-  postRestaurant: async (req, res) => {
+  postRestaurant: async (req, res, next) => {
     const { name, tel, address, opening_hours, description, categoryId } = req.body
     if (!name) {
       req.flash('error_msgs', 'Name is required')
@@ -91,7 +91,7 @@ const adminController = {
     }
   },
 
-  getRestaurant: async (req, res) => {
+  getRestaurant: async (req, res, next) => {
     try {
       const restaurant =
         await Restaurant.findByPk(req.params.id, {
@@ -106,7 +106,7 @@ const adminController = {
     }
   },
 
-  editRestaurant: async (req, res) => {
+  editRestaurant: async (req, res, next) => {
     try {
       const categories =
         await Category.findAll({
@@ -124,7 +124,7 @@ const adminController = {
     }
   },
 
-  putRestaurant: async (req, res) => {
+  putRestaurant: async (req, res, next) => {
     if (!req.body.name) {
       req.flash('error_msgs', 'Name is required')
       return res.redirect('back')
@@ -160,7 +160,7 @@ const adminController = {
     }
   },
 
-  deleteRestaurant: async (req, res) => {
+  deleteRestaurant: async (req, res, next) => {
     try {
       const restaurant = await Restaurant.findByPk(req.params.id)
       await restaurant.destroy()

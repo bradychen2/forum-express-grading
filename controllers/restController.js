@@ -6,7 +6,7 @@ const User = db.User
 const pageLimit = 10
 
 const restController = {
-  getRestaurants: async (req, res) => {
+  getRestaurants: async (req, res, next) => {
     let offset = 0
     const whereQuery = {}
     let categoryId = ''
@@ -64,7 +64,7 @@ const restController = {
     }
   },
 
-  getRestaurant: async (req, res) => {
+  getRestaurant: async (req, res, next) => {
     try {
       const restaurant =
         await Restaurant.findByPk(req.params.id, {

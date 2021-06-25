@@ -2,7 +2,7 @@ const db = require('../models')
 const Category = db.Category
 
 const categoryController = {
-  getCategories: async (req, res) => {
+  getCategories: async (req, res, next) => {
     try {
       const categories = await Category.findAll({ raw: true, nest: true })
 
@@ -21,7 +21,7 @@ const categoryController = {
     }
   },
 
-  postCategory: async (req, res) => {
+  postCategory: async (req, res, next) => {
     if (!req.body.name) {
       req.flash('error_msgs', 'name didn\'t exist')
       return res.redirect('back')
@@ -35,7 +35,7 @@ const categoryController = {
     }
   },
 
-  putCategory: async (req, res) => {
+  putCategory: async (req, res, next) => {
     if (!req.body.name) {
       req.flash('error_msgs', 'name didn\'t exist')
       return res.redirect('back')
@@ -51,10 +51,15 @@ const categoryController = {
     }
   },
 
-  deleteCategory: async (req, res) => {
-    const category = await Category.findByPk(req.params.id)
-    await category.destroy()
-    return res.redirect('/admin/categories')
+  deleteCategory: async (req, res, next) => {
+    try {
+      const category = await Category.findByPk(req.params.id)
+      await category.destroy()
+      return res.redirect('/admin/categories')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 
