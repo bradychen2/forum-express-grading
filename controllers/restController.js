@@ -41,13 +41,19 @@ const restController = {
       const totalPage = Array.from({ length: pages }).map((item, index) => index + 1)
       let prev = page - 1 < 1 ? 1 : page - 1
       let next = (page + 1 > pages) ? pages : page + 1
-      // Cut description to length-50 and add categoryName for render
+
+      // Lists for judging Add/Remove favorites and Like/Unlike
+      const favRestIdList = req.user.FavoritedRestaurants.map(f => f.id)
+      const likedRestIdList = req.user.LikedRestaurants.map(l => l.id)
+
       const data = results.rows.map(r => {
         return {
           ...r, // spread operator
+          // Cut description to length-50 and add categoryName for render
           description: r.description.substring(0, 50),
           categoryName: r.Category.name,
-          isFavorited: req.user.FavoritedRestaurants.map(f => f.id).includes(r.id)
+          isFavorited: favRestIdList.includes(r.id),
+          isLiked: likedRestIdList.includes(r.id)
         }
       })
       const categories =
@@ -74,14 +80,19 @@ const restController = {
           include: [
             Category,
             { model: Comment, include: [User] },
-            { model: User, as: 'FavoritedUsers' }
+            { model: User, as: 'FavoritedUsers' },
+            { model: User, as: 'LikedUsers' }
           ]
         })
       await restaurant.increment('viewCounts')
+      // Lists for judging Add/Remove favorites and Like/Unlike
       const isFavorited = restaurant.FavoritedUsers.map(u => u.id).includes(req.user.id)
+      const isLiked = restaurant.LikedUsers.map(l => l.id).includes(req.user.id)
+
       return res.render('restaurant', {
         restaurant: restaurant.toJSON(),
-        isFavorited
+        isFavorited,
+        isLiked
       })
     } catch (err) {
       console.log(err)
