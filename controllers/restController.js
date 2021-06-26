@@ -46,7 +46,8 @@ const restController = {
         return {
           ...r, // spread operator
           description: r.description.substring(0, 50),
-          categoryName: r.Category.name
+          categoryName: r.Category.name,
+          isFavorited: req.user.FavoritedRestaurants.map(f => f.id).includes(r.id)
         }
       })
       const categories =
@@ -72,11 +73,16 @@ const restController = {
         await Restaurant.findByPk(req.params.id, {
           include: [
             Category,
-            { model: Comment, include: [User] }
+            { model: Comment, include: [User] },
+            { model: User, as: 'FavoritedUsers' }
           ]
         })
       await restaurant.increment('viewCounts')
-      return res.render('restaurant', { restaurant: restaurant.toJSON() })
+      const isFavorited = restaurant.FavoritedUsers.map(u => u.id).includes(req.user.id)
+      return res.render('restaurant', {
+        restaurant: restaurant.toJSON(),
+        isFavorited
+      })
     } catch (err) {
       console.log(err)
       next(err)
