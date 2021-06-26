@@ -156,7 +156,20 @@ const userController = {
     }
   },
 
-  toggleLike: async (req, res, next) => {
+  addLike: async (req, res, next) => {
+    try {
+      await Like.create({
+        UserId: req.user.id,
+        RestaurantId: req.params.restaurantId
+      })
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  dislike: async (req, res, next) => {
     try {
       const like = await Like.findOne({
         where: {
@@ -164,14 +177,7 @@ const userController = {
           RestaurantId: req.params.restaurantId
         }
       })
-      if (like) {
-        await like.destroy()
-      } else {
-        await Like.create({
-          UserId: req.user.id,
-          RestaurantId: req.params.restaurantId
-        })
-      }
+      await like.destroy()
       return res.redirect('back')
     } catch (err) {
       console.log(err)
