@@ -8,6 +8,9 @@
   <li class="nav-item">
     <a class="nav-link" href="/users/top">美食達人</a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/restaurants/top">TOP10 人氣餐廳</a>
+  </li>
 </ul>
 <br />
 <ul class="nav nav-pills">
@@ -49,11 +52,11 @@
           </form>
           {{/if}}
           {{#if this.isLiked}}
-          <form action="/like/{{this.id}}?_method=PUT" method="POST">
+          <form action="/like/{{this.id}}?_method=DELETE" method="POST">
             <button type="submit" class="btn btn-danger mx-2">Unlike</button>
           </form>
           {{else}}
-          <form action="/like/{{this.id}}?_method=PUT" method="POST">
+          <form action="/like/{{this.id}}" method="POST">
             <button type="submit" class="btn btn-primary mx-2">Like</button>
           </form>
           {{/if}}

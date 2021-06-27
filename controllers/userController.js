@@ -230,6 +230,7 @@ const userController = {
       topUsers = topUsers.sort((a, b) => {
         b.FollowerCount - a.FollowerCount
       })
+      topUsers.splice(10)
       return res.render('topUser', { users: topUsers })
     } catch (err) {
       console.log(err)
