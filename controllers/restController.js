@@ -130,10 +130,11 @@ const restController = {
   getDashboard: async (req, res, next) => {
     try {
       let restaurant = await Restaurant.findByPk(req.params.id, {
-        include: [Comment, Category]
+        include: [Comment, Category, { model: User, as: 'FavoritedUsers' }]
       })
       restaurant = restaurant.toJSON()
       restaurant.countOfComments = restaurant.Comments.length
+      restaurant.countOfFavorites = restaurant.FavoritedUsers.length
       return res.render('dashboard', { restaurant })
     } catch (err) {
       console.log(err)
