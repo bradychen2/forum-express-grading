@@ -8,6 +8,7 @@ const Comment = db.Comment
 const Restaurant = db.Restaurant
 const Favorite = db.Favorite
 const Like = db.Like
+const Followship = db.Followship
 
 const userController = {
   signUpPage: (req, res) => {
@@ -184,6 +185,57 @@ const userController = {
       next(err)
     }
   },
+
+  addFollowing: async (req, res, next) => {
+    try {
+      await Followship.create({
+        followerId: req.user.id,
+        followingId: req.params.userId
+      })
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  removeFollowing: async (req, res, next) => {
+    try {
+      const followship = await Followship.findOne({
+        where: {
+          followerId: req.user.id,
+          followingId: req.params.userId
+        }
+      })
+      await followship.destroy()
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  getTopUser: async (req, res, next) => {
+    try {
+      const users = await User.findAll({
+        include: [{ model: User, as: 'Followers' }],
+      })
+      let topUsers = users.map(u => {
+        return {
+          ...u.dataValues,
+          FollowerCount: u.Followers.length,
+          isFollowed: req.user.Followings.map(d => d.id).includes(u.id)
+        }
+      })
+      topUsers = topUsers.sort((a, b) => {
+        b.FollowerCount - a.FollowerCount
+      })
+      return res.render('topUser', { users: topUsers })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  }
 }
 
 module.exports = userController
