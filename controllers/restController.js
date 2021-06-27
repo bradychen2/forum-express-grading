@@ -41,12 +41,19 @@ const restController = {
       const totalPage = Array.from({ length: pages }).map((item, index) => index + 1)
       let prev = page - 1 < 1 ? 1 : page - 1
       let next = (page + 1 > pages) ? pages : page + 1
-      // Cut description to length-50 and add categoryName for render
+
+      // Lists for judging Add/Remove favorites and Like/Unlike
+      const favRestIdList = req.user.FavoritedRestaurants.map(f => f.id)
+      const likedRestIdList = req.user.LikedRestaurants.map(l => l.id)
+
       const data = results.rows.map(r => {
         return {
           ...r, // spread operator
+          // Cut description to length-50 and add categoryName for render
           description: r.description.substring(0, 50),
-          categoryName: r.Category.name
+          categoryName: r.Category.name,
+          isFavorited: favRestIdList.includes(r.id),
+          isLiked: likedRestIdList.includes(r.id)
         }
       })
       const categories =
@@ -72,11 +79,21 @@ const restController = {
         await Restaurant.findByPk(req.params.id, {
           include: [
             Category,
-            { model: Comment, include: [User] }
+            { model: Comment, include: [User] },
+            { model: User, as: 'FavoritedUsers' },
+            { model: User, as: 'LikedUsers' }
           ]
         })
       await restaurant.increment('viewCounts')
-      return res.render('restaurant', { restaurant: restaurant.toJSON() })
+      // Lists for judging Add/Remove favorites and Like/Unlike
+      const isFavorited = restaurant.FavoritedUsers.map(u => u.id).includes(req.user.id)
+      const isLiked = restaurant.LikedUsers.map(l => l.id).includes(req.user.id)
+
+      return res.render('restaurant', {
+        restaurant: restaurant.toJSON(),
+        isFavorited,
+        isLiked
+      })
     } catch (err) {
       console.log(err)
       next(err)
@@ -113,16 +130,45 @@ const restController = {
   getDashboard: async (req, res, next) => {
     try {
       let restaurant = await Restaurant.findByPk(req.params.id, {
-        include: [Comment, Category]
+        include: [Comment, Category, { model: User, as: 'FavoritedUsers' }]
       })
       restaurant = restaurant.toJSON()
       restaurant.countOfComments = restaurant.Comments.length
+      restaurant.countOfFavorites = restaurant.FavoritedUsers.length
       return res.render('dashboard', { restaurant })
     } catch (err) {
       console.log(err)
       next(err)
     }
   },
+
+  getTopRestaurants: async (req, res, next) => {
+    try {
+      let restaurants = await Restaurant.findAll({
+        include: [
+          { model: User, as: 'FavoritedUsers' },
+          { model: User, as: 'LikedUsers' }
+        ],
+      })
+      restaurants = restaurants.map(r => {
+        return {
+          ...r.dataValues,
+          description: r.dataValues.description.substring(0, 50),
+          favorUserCount: r.FavoritedUsers.length,
+          isFavorited: r.FavoritedUsers.map(u => u.id).includes(req.user.id),
+          isLiked: r.LikedUsers.map(u => u.id).includes(req.user.id),
+        }
+      })
+      restaurants = restaurants.sort((a, b) => {
+        return b.favorUserCount - a.favorUserCount
+      })
+      restaurants.splice(10)
+      return res.render('topRest', { restaurants })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  }
 }
 
 module.exports = restController

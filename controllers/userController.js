@@ -6,6 +6,9 @@ const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const User = db.User
 const Comment = db.Comment
 const Restaurant = db.Restaurant
+const Favorite = db.Favorite
+const Like = db.Like
+const Followship = db.Followship
 
 const userController = {
   signUpPage: (req, res) => {
@@ -52,20 +55,23 @@ const userController = {
 
   getUser: async (req, res, next) => {
     const restaurants = {}
-    let countOfRestaurants = 0
-    try {
-      let user = await User.findByPk(req.params.id, {
-        include: [{
-          model: Comment,
-          include: [Restaurant]
-        }]
-      })
-      user = user.toJSON()
+    let countOfCommentedRest = 0
 
-      user.Comments.forEach((comment) => {
+    try {
+      let viewUser = await User.findByPk(req.params.id, {
+        include: [
+          { model: Comment, include: [Restaurant] },
+          { model: User, as: 'Followers' },
+          { model: User, as: 'Followings' },
+          { model: Restaurant, as: 'FavoritedRestaurants' }
+        ]
+      })
+      viewUser = viewUser.toJSON()
+
+      viewUser.Comments.forEach((comment) => {
         if (!restaurants[comment.Restaurant.id]) {
           restaurants[comment.Restaurant.id] = comment.Restaurant.image
-          countOfRestaurants += 1
+          countOfCommentedRest += 1
         }
       })
 
@@ -75,8 +81,12 @@ const userController = {
       })
 
       // How many restaurants the user has commented
-      user.countOfRestaurants = countOfRestaurants
-      return res.render('user', { user, restImgs })
+      viewUser.countOfCommentedRest = countOfCommentedRest
+      viewUser.countOfFavorRest = viewUser.FavoritedRestaurants.length
+      viewUser.countOfFollowers = viewUser.Followers.length
+      viewUser.countOfFollowings = viewUser.Followings.length
+
+      return res.render('user', { viewUser, user: req.user, restImgs })
     } catch (err) {
       console.log(err)
       next(err)
@@ -104,12 +114,11 @@ const userController = {
       const user = await User.findByPk(req.params.id)
 
       if (file) {
-        fs.readFile(file.path, async (err, data) => {
-          fs.writeFile(`upload/${file.originalname}`, data, async () => {
-            await user.update({
-              name,
-              image: file ? `/upload/${file.originalname}` : user.image
-            })
+        imgur.setClientID(IMGUR_CLIENT_ID)
+        imgur.upload(file.path, async (err, img) => {
+          await user.update({
+            name,
+            image: file ? img.data.link : user.image
           })
         })
         req.flash('success_msgs', 'user was successfully updated')
@@ -119,6 +128,116 @@ const userController = {
         req.flash('success_msgs', 'user was successfully updated')
         return res.redirect(`/users/${req.params.id}`)
       }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  addFavorite: async (req, res, next) => {
+    try {
+      await Favorite.create({
+        UserId: req.user.id,
+        RestaurantId: req.params.restaurantId
+      })
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  removeFavorite: async (req, res, next) => {
+    try {
+      const favorite = await Favorite.findOne({
+        where: {
+          UserId: req.user.id,
+          RestaurantId: req.params.restaurantId
+        }
+      })
+      await favorite.destroy()
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  addLike: async (req, res, next) => {
+    try {
+      await Like.create({
+        UserId: req.user.id,
+        RestaurantId: req.params.restaurantId
+      })
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  dislike: async (req, res, next) => {
+    try {
+      const like = await Like.findOne({
+        where: {
+          UserId: req.user.id,
+          RestaurantId: req.params.restaurantId
+        }
+      })
+      await like.destroy()
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  addFollowing: async (req, res, next) => {
+    try {
+      await Followship.create({
+        followerId: req.user.id,
+        followingId: req.params.userId
+      })
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  removeFollowing: async (req, res, next) => {
+    try {
+      const followship = await Followship.findOne({
+        where: {
+          followerId: req.user.id,
+          followingId: req.params.userId
+        }
+      })
+      await followship.destroy()
+      return res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+
+  getTopUser: async (req, res, next) => {
+    try {
+      const users = await User.findAll({
+        include: [{ model: User, as: 'Followers' }],
+      })
+      let topUsers = users.map(u => {
+        return {
+          ...u.dataValues,
+          FollowerCount: u.Followers.length,
+          isFollowed: req.user.Followings.map(d => d.id).includes(u.id)
+        }
+      })
+      topUsers = topUsers.sort((a, b) => {
+        b.FollowerCount - a.FollowerCount
+      })
+      topUsers.splice(10)
+      return res.render('topUser', { users: topUsers })
     } catch (err) {
       console.log(err)
       next(err)

@@ -17,7 +17,7 @@ module.exports = (app, passport) => {
 
   const authenticatedAdmin = (req, res, next) => {
     if (helpers.ensureAuthenticated(req)) {
-      if (helpers.getUser(req).isAdmin) {
+      if (req.user.isAdmin) {
         return next()
       }
       return res.redirect('/')
@@ -26,12 +26,23 @@ module.exports = (app, passport) => {
   }
 
   // Users
+  app.get('/users/top', authenticated, userController.getTopUser)
   app.get('/users/:id/edit', authenticated, userController.editUser)
   app.put('/users/:id', authenticated, upload.single('image'), userController.putUser)
   app.get('/users/:id', authenticated, userController.getUser)
+  // Following
+  app.post('/following/:userId', authenticated, userController.addFollowing)
+  app.delete('/following/:userId', authenticated, userController.removeFollowing)
+  // Favorite
+  app.post('/favorite/:restaurantId', authenticated, userController.addFavorite)
+  app.delete('/favorite/:restaurantId', authenticated, userController.removeFavorite)
+  // Like
+  app.post('/like/:restaurantId', authenticated, userController.addLike)
+  app.delete('/like/:restaurantId', authenticated, userController.dislike)
   // Restaurant
   app.get('/', authenticated, (req, res) => res.redirect('/restaurants'))
   app.get('/restaurants', authenticated, restController.getRestaurants)
+  app.get('/restaurants/top', authenticated, restController.getTopRestaurants)
   app.get('/restaurants/:id/dashboard', authenticated, restController.getDashboard)
   app.get('/restaurants/feeds', authenticated, restController.getFeeds)
   app.get('/restaurants/:id', authenticated, restController.getRestaurant)

@@ -4,11 +4,15 @@
     "cond",
     "database",
     "exphbs",
+    "favorited",
+    "followship",
+    "followships",
     "id",
     "imgur",
     "postgres",
     "resave",
     "signin",
-    "url"
+    "url",
+    "users"
   ]
 }

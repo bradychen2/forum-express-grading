@@ -30,11 +30,15 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash())
 app.use('/upload', express.static(__dirname + '/upload'))
+app.use((req, res, next) => {
+  req.user = helpers.getUser(req)
+  next()
+})
 
 app.use((req, res, next) => {
   res.locals.success_msgs = req.flash('success_msgs')
   res.locals.error_msgs = req.flash('error_msgs')
-  res.locals.user = helpers.getUser(req)
+  res.locals.user = req.user
   next()
 })
 
