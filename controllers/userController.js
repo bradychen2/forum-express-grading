@@ -114,12 +114,11 @@ const userController = {
       const user = await User.findByPk(req.params.id)
 
       if (file) {
-        fs.readFile(file.path, async (err, data) => {
-          fs.writeFile(`upload/${file.originalname}`, data, async () => {
-            await user.update({
-              name,
-              image: file ? `/upload/${file.originalname}` : user.image
-            })
+        imgur.setClientID(IMGUR_CLIENT_ID)
+        imgur.upload(file.path, async (err, img) => {
+          await user.update({
+            name,
+            image: file ? img.data.link : user.image
           })
         })
         req.flash('success_msgs', 'user was successfully updated')
