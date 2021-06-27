@@ -27,12 +27,12 @@
       </form>
       {{/if}}
       {{#if isLiked}}
-      <form action="/like/{{restaurant.id}}?_method=PUT" method="POST">
-        <button type="submit" class="btn btn-danger">Unlike</button>
+      <form action="/like/{{restaurant.id}}?_method=DELETE" method="POST">
+        <button type="submit" class="btn btn-danger mx-2">Unlike</button>
       </form>
       {{else}}
-      <form action="/like/{{restaurant.id}}?_method=PUT" method="POST">
-        <button type="submit" class="btn btn-primary">Like</button>
+      <form action="/like/{{restaurant.id}}" method="POST">
+        <button type="submit" class="btn btn-primary mx-2">Like</button>
       </form>
       {{/if}}
     </div>
