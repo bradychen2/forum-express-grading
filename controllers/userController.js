@@ -55,20 +55,23 @@ const userController = {
 
   getUser: async (req, res, next) => {
     const restaurants = {}
-    let countOfRestaurants = 0
-    try {
-      let user = await User.findByPk(req.params.id, {
-        include: [{
-          model: Comment,
-          include: [Restaurant]
-        }]
-      })
-      user = user.toJSON()
+    let countOfCommentedRest = 0
 
-      user.Comments.forEach((comment) => {
+    try {
+      let viewUser = await User.findByPk(req.params.id, {
+        include: [
+          { model: Comment, include: [Restaurant] },
+          { model: User, as: 'Followers' },
+          { model: User, as: 'Followings' },
+          { model: Restaurant, as: 'FavoritedRestaurants' }
+        ]
+      })
+      viewUser = viewUser.toJSON()
+
+      viewUser.Comments.forEach((comment) => {
         if (!restaurants[comment.Restaurant.id]) {
           restaurants[comment.Restaurant.id] = comment.Restaurant.image
-          countOfRestaurants += 1
+          countOfCommentedRest += 1
         }
       })
 
@@ -78,8 +81,12 @@ const userController = {
       })
 
       // How many restaurants the user has commented
-      user.countOfRestaurants = countOfRestaurants
-      return res.render('user', { user, restImgs })
+      viewUser.countOfCommentedRest = countOfCommentedRest
+      viewUser.countOfFavorRest = viewUser.FavoritedRestaurants.length
+      viewUser.countOfFollowers = viewUser.Followers.length
+      viewUser.countOfFollowings = viewUser.Followings.length
+
+      return res.render('user', { viewUser, user: req.user, restImgs })
     } catch (err) {
       console.log(err)
       next(err)
