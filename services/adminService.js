@@ -28,6 +28,17 @@ const adminService = {
       console.log(err)
       next(err)
     }
+  },
+
+  deleteRestaurant: async (req, res, next, callback) => {
+    try {
+      const restaurant = await Restaurant.findByPk(req.params.id)
+      await restaurant.destroy()
+      callback({ status: 'success', message: `successfully deleted restaurant: ${req.params.id}` })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 
