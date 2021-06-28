@@ -11,44 +11,32 @@ const categoryController = {
   },
 
   postCategory: async (req, res, next) => {
-    if (!req.body.name) {
-      req.flash('error_msgs', 'name didn\'t exist')
-      return res.redirect('back')
-    }
-    try {
-      await Category.create({ name: req.body.name })
+    categoryService.postCategory(req, res, next, (data) => {
+      if (data.status === 'error') {
+        req.flash('error_msgs', data.message)
+        return res.redirect('back')
+      }
+      req.flash('success_msgs', data.message)
       res.redirect('/admin/categories')
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+    })
   },
 
   putCategory: async (req, res, next) => {
-    if (!req.body.name) {
-      req.flash('error_msgs', 'name didn\'t exist')
-      return res.redirect('back')
-    } else {
-      try {
-        const category = await Category.findByPk(req.params.id)
-        await category.update({ name: req.body.name })
-        return res.redirect('/admin/categories')
-      } catch (err) {
-        console.log(err)
-        next(err)
+    categoryService.putCategory(req, res, next, (data) => {
+      if (data.status === 'error') {
+        req.flash('error_msgs', data.message)
+        return res.redirect('back')
       }
-    }
+      req.flash('success_msgs', data.message)
+      res.redirect('/admin/categories')
+    })
   },
 
   deleteCategory: async (req, res, next) => {
-    try {
-      const category = await Category.findByPk(req.params.id)
-      await category.destroy()
+    categoryService.deleteCategory(req, res, next, (data) => {
+      req.flash('success_msgs', data.message)
       return res.redirect('/admin/categories')
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+    })
   }
 }
 

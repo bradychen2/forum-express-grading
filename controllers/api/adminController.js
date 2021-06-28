@@ -1,3 +1,5 @@
+const { database } = require('faker/locale/cz')
+const { datatype } = require('faker/locale/de_AT')
 const adminService = require('../../services/adminService')
 
 const adminController = {
@@ -18,6 +20,18 @@ const adminController = {
       return res.json(data)
     })
   },
+
+  postRestaurant: (req, res, next) => {
+    adminService.postRestaurant(req, res, next, (data) => {
+      return res.json(data)
+    })
+  },
+
+  putRestaurant: (req, res, next) => {
+    adminService.putRestaurant(req, res, next, (data) => {
+      return res.json(data)
+    })
+  }
 }
 
 module.exports = adminController
