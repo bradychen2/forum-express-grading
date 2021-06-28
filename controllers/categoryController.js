@@ -1,24 +1,13 @@
+const { database } = require('faker/locale/az')
 const db = require('../models')
+const categoryService = require('../services/categoryService')
 const Category = db.Category
 
 const categoryController = {
-  getCategories: async (req, res, next) => {
-    try {
-      const categories = await Category.findAll({ raw: true, nest: true })
-
-      if (req.params.id) {
-        const category = await Category.findByPk(req.params.id)
-        return res.render('admin/categories', {
-          category: category.toJSON(),
-          categories
-        })
-      } else {
-        return res.render('admin/categories', { categories })
-      }
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+  getCategories: (req, res, next) => {
+    categoryService.getCategories(req, res, next, (data) => {
+      return res.render('admin/categories', data)
+    })
   },
 
   postCategory: async (req, res, next) => {
