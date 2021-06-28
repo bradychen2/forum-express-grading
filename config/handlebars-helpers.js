@@ -11,5 +11,5 @@ module.exports = {
 
   moment: function (absoluteTime) {
     return moment(absoluteTime).fromNow()
-  }
+  },
 }
