@@ -9,6 +9,7 @@
     "followships",
     "id",
     "imgur",
+    "originalname",
     "postgres",
     "resave",
     "signin",
