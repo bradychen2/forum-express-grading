@@ -5,63 +5,61 @@ const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const Restaurant = db.Restaurant
 const Category = db.Category
 
-const imgurUploadImg = (req, file, id = undefined) => {
+const imgurUpload = (file) => {
   return new Promise((resolve, reject) => {
     imgur.setClientID(IMGUR_CLIENT_ID)
     imgur.upload(file.path, (err, img) => {
-      const { name, tel, address, opening_hours, description, categoryId } = req.body
-      if (id) {
-        Restaurant.findByPk(id)
-          .then(restaurant => {
-            restaurant.update({
-              name, tel, address, opening_hours, description,
-              CategoryId: categoryId,
-              image: file ? img.data.link : restaurant.image
-            })
-          })
-        resolve('upload OK')
-      } else {
-        Restaurant.create({
-          name, tel, address, opening_hours, description,
-          CategoryId: categoryId,
-          image: file ? img.data.link : null
-        })
-        resolve('upload OK')
+      if (err) {
+        reject(err)
       }
+      resolve(img)
     })
   })
 }
 
-const fsUploadImg = (req, file, id = undefined) => {
+const fsUpload = (file) => {
   return new Promise((resolve, reject) => {
-    fs.readFile(file.path, (err, data) => {
-      fs.writeFile(`upload/${file.originalname}`, data, () => {
-        const { name, tel, address, opening_hours, description, categoryId } = req.body
-        if (id) {
-          Restaurant.findByPk(id)
-            .then(restaurant => {
-              restaurant.update({
-                name, tel, address, opening_hours, description,
-                CategoryId: categoryId,
-                image: file ? `/upload/${file.originalname}` : restaurant.image
-              })
-            })
-          resolve('upload OK')
-        } else {
-          Restaurant.create({
-            name, tel, address, opening_hours, description,
-            CategoryId: categoryId,
-            image: file ? `/upload/${file.originalname}` : null
-          })
-          resolve('upload OK')
-        }
+    try {
+      fs.readFile(file.path, (err, data) => {
+        fs.writeFile(`/upload/${file.originalname}`, data, () => {
+          resolve(`/upload/${file.originalname}`)
+        })
       })
-      if (err) {
-        reject(err)
-      }
-    })
+    } catch (err) {
+      reject(err)
+    }
   })
 }
+
+const updateRest = (req, id, filePath = undefined) => {
+  return new Promise((resolve, reject) => {
+    const { name, tel, address, opening_hours, description, categoryId } = req.body
+    Restaurant.findByPk(id)
+      .then(restaurant => {
+        return restaurant.update({
+          name, tel, address, opening_hours, description,
+          CategoryId: categoryId,
+          image: filePath ? filePath : restaurant.image
+        })
+      })
+      .then(() => resolve('updated OK'))
+      .catch(err => reject(err))
+  })
+}
+
+const createRest = (req, filePath = undefined) => {
+  return new Promise((resolve, reject) => {
+    const { name, tel, address, opening_hours, description, categoryId } = req.body
+    Restaurant.create({
+      name, tel, address, opening_hours, description,
+      CategoryId: categoryId,
+      image: filePath ? filePath : null
+    })
+      .then(() => resolve('created OK'))
+      .catch(err => reject(err))
+  })
+}
+
 
 const adminService = {
   getRestaurants: async (req, res, next, callback) => {
@@ -104,21 +102,17 @@ const adminService = {
 
   postRestaurant: async (req, res, next, callback) => {
     try {
-      const { name, tel, address, opening_hours, description, categoryId } = req.body
-      if (!name) {
+      if (!req.body.name) {
         return callback({ status: 'error', message: 'name is required' })
       }
       const { file } = req
 
       if (file) {
-        console.log(await fsUploadImg(req, file))
+        const filePath = await fsUpload(file)
+        console.log(await createRest(req, filePath))
         return callback({ status: 'success', message: 'Restaurant was successfully created' })
       } else {
-        await Restaurant.create({
-          name, tel, address, opening_hours, description,
-          image: null,
-          CategoryId: categoryId
-        })
+        console.log(await createRest(req))
         return callback({ status: 'success', message: 'Restaurant was successfully created' })
       }
     } catch (err) {
@@ -129,21 +123,17 @@ const adminService = {
 
   putRestaurant: async (req, res, next, callback) => {
     try {
-      const { name, tel, address, opening_hours, description, categoryId } = req.body
-      if (!name) {
+      if (!req.body.name) {
         return callback({ status: 'error', message: 'name is required' })
       }
       const { file } = req
 
       if (file) {
-        console.log(await fsUploadImg(req, file, req.params.id))
+        const filePath = await fsUpload(file)
+        console.log(await updateRest(req, req.params.id, filePath))
         return callback({ status: 'success', message: 'Restaurant was successfully updated' })
       } else {
-        const restaurant = await Restaurant.findByPk(req.params.id)
-        await restaurant.update({
-          name, tel, address, opening_hours, description,
-          image: restaurant.image, CategoryId: categoryId
-        })
+        console.log(await updateRest(req, req.params.id))
         return callback({ status: 'success', message: 'Restaurant was successfully updated' })
       }
     } catch (err) {
